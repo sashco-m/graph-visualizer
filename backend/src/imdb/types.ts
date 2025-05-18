@@ -1,6 +1,7 @@
 export interface PersonRow {
   nconst: string;
   primaryName: string;
+  primaryProfession: string;
   birthYear: string; // Can be "\\N"
   deathYear: string; // Can be "\\N"
 }
@@ -22,4 +23,10 @@ export interface PrincipalRow {
   nconst: string;
   category: string;
   characters: string;
+}
+
+export interface RatingRow {
+  tconst: string;
+  averageRating: string;
+  numVotes: string;
 }
