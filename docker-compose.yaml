@@ -23,10 +23,22 @@ services:
       DB_PASS: postgres
       DB_NAME: imdb
     ports:
-      - "3000:3000"
+      - "3001:3001"
     volumes:
       - ./backend:/app
       - ./data:/app/data
+
+  frontend:
+    build: ./frontend
+    container_name: imdb-graph-frontend
+    # volumes allow for code changes to reflect in container
+    volumes:
+      - ./frontend:/app  
+      - /app/node_modules 
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
 
 volumes:
   pgdata:

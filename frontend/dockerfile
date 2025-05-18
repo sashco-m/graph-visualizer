@@ -1,0 +1,14 @@
+FROM node:18
+
+WORKDIR /app
+# Optimization, run the package copy separately
+# Prevents code changes from reinstalling packages
+COPY package*.json ./
+# Install the dependencies
+RUN npm install
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]

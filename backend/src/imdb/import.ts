@@ -180,6 +180,8 @@ async function bootstrap() {
   );
 
   // index creation (speeds up following matches a lot)
+  // https://github.com/apache/age/discussions/130
+  // https://github.com/apache/age/discussions/45
   await graph.runCypher(`CREATE INDEX IF NOT EXISTS person_properties_gin ON imdb_graph."Person" USING GIN (properties);`)
   await graph.runCypher(`CREATE INDEX IF NOT EXISTS movie_properties_gin ON imdb_graph."Movie" USING GIN (properties);`)
 
