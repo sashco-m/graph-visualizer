@@ -17,15 +17,15 @@
  * under the License.
  */
 
-import { AgtypeListener } from './AgtypeListener'
+import { AgtypeListener } from './AgtypeListener';
 import {
   FloatLiteralContext,
   FloatValueContext,
   IntegerValueContext,
   PairContext,
-  StringValueContext
-} from './AgtypeParser'
-import { ParseTreeListener } from 'antlr4ts/tree/ParseTreeListener'
+  StringValueContext,
+} from './AgtypeParser';
+import { ParseTreeListener } from 'antlr4ts/tree/ParseTreeListener';
 
 type MapOrArray = Map<string, any> | any[];
 
@@ -36,158 +36,162 @@ class CustomAgTypeListener implements AgtypeListener, ParseTreeListener {
   lastObject?: MapOrArray;
   lastValue: any = undefined;
 
-  mergeArrayOrObject (key: string) {
+  mergeArrayOrObject(key: string) {
     if (this.prevObject instanceof Array) {
-      this.mergeArray()
+      this.mergeArray();
     } else {
-      this.mergeObject(key)
+      this.mergeObject(key);
     }
   }
 
-  mergeArray () {
-    if (this.prevObject !== undefined && this.lastObject !== undefined && this.prevObject instanceof Array) {
-      this.prevObject.push(this.lastObject)
-      this.lastObject = this.prevObject
-      this.objectInsider.shift()
-      this.prevObject = this.objectInsider[1]
+  mergeArray() {
+    if (
+      this.prevObject !== undefined &&
+      this.lastObject !== undefined &&
+      this.prevObject instanceof Array
+    ) {
+      this.prevObject.push(this.lastObject);
+      this.lastObject = this.prevObject;
+      this.objectInsider.shift();
+      this.prevObject = this.objectInsider[1];
     }
   }
 
-  mergeObject (key: string) {
-    if (this.prevObject !== undefined && this.lastObject !== undefined && this.prevObject instanceof Map) {
-      this.prevObject.set(key, this.lastObject)
-      this.lastObject = this.prevObject
-      this.objectInsider.shift()
-      this.prevObject = this.objectInsider[1]
+  mergeObject(key: string) {
+    if (
+      this.prevObject !== undefined &&
+      this.lastObject !== undefined &&
+      this.prevObject instanceof Map
+    ) {
+      this.prevObject.set(key, this.lastObject);
+      this.lastObject = this.prevObject;
+      this.objectInsider.shift();
+      this.prevObject = this.objectInsider[1];
     }
   }
 
-  createNewObject () {
-    const newObject = new Map()
-    this.objectInsider.unshift(newObject)
-    this.prevObject = this.lastObject
-    this.lastObject = newObject
+  createNewObject() {
+    const newObject = new Map();
+    this.objectInsider.unshift(newObject);
+    this.prevObject = this.lastObject;
+    this.lastObject = newObject;
   }
 
-  createNewArray () {
-    const newObject: any[] = []
-    this.objectInsider.unshift(newObject)
-    this.prevObject = this.lastObject
-    this.lastObject = newObject
+  createNewArray() {
+    const newObject: any[] = [];
+    this.objectInsider.unshift(newObject);
+    this.prevObject = this.lastObject;
+    this.lastObject = newObject;
   }
 
-  pushIfArray (value: any) {
+  pushIfArray(value: any) {
     if (this.lastObject instanceof Array) {
-      this.lastObject.push(value)
-      return true
+      this.lastObject.push(value);
+      return true;
     }
-    return false
+    return false;
   }
 
-  exitStringValue (ctx: StringValueContext): void {
-    const value = this.stripQuotes(ctx.text)
+  exitStringValue(ctx: StringValueContext): void {
+    const value = this.stripQuotes(ctx.text);
     if (!this.pushIfArray(value)) {
-      this.lastValue = value
+      this.lastValue = value;
     }
   }
 
-  exitIntegerValue (ctx: IntegerValueContext): void {
-    const value = parseInt(ctx.text)
+  exitIntegerValue(ctx: IntegerValueContext): void {
+    const value = parseInt(ctx.text);
     if (!this.pushIfArray(value)) {
-      this.lastValue = value
+      this.lastValue = value;
     }
   }
 
-  exitFloatValue (ctx: FloatValueContext): void {
-    const value = parseFloat(ctx.text)
+  exitFloatValue(ctx: FloatValueContext): void {
+    const value = parseFloat(ctx.text);
     if (!this.pushIfArray(value)) {
-      this.lastValue = value
+      this.lastValue = value;
     }
   }
 
-  exitTrueBoolean (): void {
-    const value = true
+  exitTrueBoolean(): void {
+    const value = true;
     if (!this.pushIfArray(value)) {
-      this.lastValue = value
+      this.lastValue = value;
     }
   }
 
-  exitFalseBoolean (): void {
-    const value = false
+  exitFalseBoolean(): void {
+    const value = false;
     if (!this.pushIfArray(value)) {
-      this.lastValue = value
+      this.lastValue = value;
     }
   }
 
-  exitNullValue (): void {
-    const value = null
+  exitNullValue(): void {
+    const value = null;
     if (!this.pushIfArray(value)) {
-      this.lastValue = value
+      this.lastValue = value;
     }
   }
 
-  exitFloatLiteral (ctx: FloatLiteralContext): void {
-    const value = ctx.text
+  exitFloatLiteral(ctx: FloatLiteralContext): void {
+    const value = ctx.text;
     if (!this.pushIfArray(value)) {
-      this.lastValue = value
+      this.lastValue = value;
     }
   }
 
-  enterObjectValue (): void {
-    this.createNewObject()
+  enterObjectValue(): void {
+    this.createNewObject();
   }
 
-  enterArrayValue (): void {
-    this.createNewArray()
+  enterArrayValue(): void {
+    this.createNewArray();
   }
 
-  exitObjectValue (): void {
-    this.mergeArray()
+  exitObjectValue(): void {
+    this.mergeArray();
   }
 
-  exitPair (ctx: PairContext): void {
-    const name = this.stripQuotes(ctx.STRING().text)
+  exitPair(ctx: PairContext): void {
+    const name = this.stripQuotes(ctx.STRING().text);
 
     if (this.lastValue !== undefined) {
-      (this.lastObject as Map<string, any>).set(name, this.lastValue)
-      this.lastValue = undefined
+      (this.lastObject as Map<string, any>).set(name, this.lastValue);
+      this.lastValue = undefined;
     } else {
-      this.mergeArrayOrObject(name)
+      this.mergeArrayOrObject(name);
     }
   }
 
-  exitAgType (): void {
-    this.rootObject = this.objectInsider.shift()
+  exitAgType(): void {
+    this.rootObject = this.objectInsider.shift();
   }
 
-  stripQuotes (quotesString: string) {
-    return JSON.parse(quotesString)
+  stripQuotes(quotesString: string) {
+    return JSON.parse(quotesString);
   }
 
-  getResult () {
-    this.objectInsider = []
-    this.prevObject = undefined
-    this.lastObject = undefined
+  getResult() {
+    this.objectInsider = [];
+    this.prevObject = undefined;
+    this.lastObject = undefined;
 
     if (!this.rootObject) {
-      this.rootObject = this.lastValue
+      this.rootObject = this.lastValue;
     }
-    this.lastValue = undefined
+    this.lastValue = undefined;
 
-    return this.rootObject
+    return this.rootObject;
   }
 
-  enterEveryRule (): void {
-  }
+  enterEveryRule(): void {}
 
-  exitEveryRule (): void {
-  }
+  exitEveryRule(): void {}
 
-  visitErrorNode (): void {
-  }
+  visitErrorNode(): void {}
 
-  visitTerminal (): void {
-  }
+  visitTerminal(): void {}
 }
 
-export default CustomAgTypeListener
+export default CustomAgTypeListener;
