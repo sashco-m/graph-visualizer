@@ -1,5 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { Client } from 'pg';
+import { types, Client } from 'pg';
+import { setAGETypes } from 'src/lib/parser';
+import { AgNode } from './graph.dto';
 
 @Injectable()
 export class GraphService implements OnModuleInit {
@@ -21,9 +23,7 @@ export class GraphService implements OnModuleInit {
 
   private async setupGraph() {
     console.log('DB setup...');
-    await this.client.query(`CREATE EXTENSION IF NOT EXISTS age;`);
-    await this.client.query(`LOAD 'age';`);
-    await this.client.query(`SET search_path = ag_catalog, "$user", public;`);
+    await setAGETypes(this.client, types);
     await this.client.query(
       `DO $$ BEGIN
         IF NOT EXISTS (SELECT 1 FROM ag_catalog.ag_graph WHERE name = '${this.graphName}') THEN
@@ -42,14 +42,30 @@ export class GraphService implements OnModuleInit {
     console.log('DB setup complete.');
   }
 
-  async runCypher(
+  async runCypher<T>(
     query: string,
     params: Record<string, any> = {},
-  ): Promise<any> {
+  ): Promise<AgNode<T>[]> {
     const text = `SELECT * FROM cypher('${this.graphName}', $$ ${query} $$, $1) AS (result agtype)`;
     // console.log(text)
     const values = [params ? JSON.stringify(params) : 'NULL'];
-    return this.client.query(text, values);
+    const res = await this.client.query(text, values);
+    // todo improve typing
+    return res.rows.map((row) => {
+      const node = row.result;
+      const properties = node?.get('properties');
+      return properties instanceof Map
+        ? this.mapToObject(properties)
+        : (properties ?? node);
+    });
+  }
+
+  private mapToObject(map: Map<any, any>): any {
+    const obj: any = {};
+    for (const [key, value] of map.entries()) {
+      obj[key] = value instanceof Map ? this.mapToObject(value) : value;
+    }
+    return obj;
   }
 
   async close() {

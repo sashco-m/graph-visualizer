@@ -24,7 +24,7 @@ async function streamTsv<T>(
     parser
       .on('data', async (row) => {
         parser.pause();
-        
+
         batch.push(row as T);
         count++;
 
@@ -62,9 +62,9 @@ async function bootstrap() {
   const graph = app.get(GraphService);
 
   // optimization: only insert popular movies
-  const MOVIE_LIMIT = 10_000
+  const MOVIE_LIMIT = 10_000;
 
-  let topMovies: { id: string, votes:number }[] = []
+  let topMovies: { id: string; votes: number }[] = [];
 
   // store the people and movies ingested to cut down on
   // edge inserts
@@ -75,29 +75,29 @@ async function bootstrap() {
     'data/title.ratings.tsv',
     async (batch) => {
       const votes = batch
-      .filter(r => !isNaN(parseInt(r.numVotes)))
-      .map(r => ({
-        id: r.tconst,
-        votes: parseInt(r.numVotes) 
-      }))
+        .filter((r) => !isNaN(parseInt(r.numVotes)))
+        .map((r) => ({
+          id: r.tconst,
+          votes: parseInt(r.numVotes),
+        }));
 
-      topMovies.push(...votes)
+      topMovies.push(...votes);
 
-      topMovies.sort((a,b) => b.votes - a.votes)
+      topMovies.sort((a, b) => b.votes - a.votes);
 
-      topMovies = topMovies.slice(0, MOVIE_LIMIT)
+      topMovies = topMovies.slice(0, MOVIE_LIMIT);
     },
-   100_000 
-  )
+    100_000,
+  );
 
-  const topMovieIds = new Set(topMovies.map(m => m.id))
+  const topMovieIds = new Set(topMovies.map((m) => m.id));
 
   console.log('🔹 Importing movies...');
   await streamTsv<TitleRow>(
     'data/title.basics.tsv',
     async (batch) => {
       const movies = batch
-        .filter(r => topMovieIds.has(r.tconst))
+        .filter((r) => topMovieIds.has(r.tconst))
         // .filter((row) => row.titleType === 'movie')
         .filter((r) => r.startYear !== '\\N')
         // .filter((r) => parseInt(r.startYear) >= 1995)
@@ -110,7 +110,8 @@ async function bootstrap() {
 
       if (!movies.length) return;
 
-      await graph.runCypher(`
+      await graph.runCypher(
+        `
         UNWIND $movies AS movie
         CREATE (m:Movie {id: movie.id})
         SET m.title = movie.title, m.year = movie.year
@@ -125,28 +126,24 @@ async function bootstrap() {
     BATCH_SIZE,
   );
 
-  const topActorIds = new Set<string>()
-  
+  const topActorIds = new Set<string>();
+
   console.log('🔹 Finding valid actors...');
   await streamTsv<PrincipalRow>(
     'data/title.principals.tsv',
     async (batch) => {
       const relationships = batch
         .filter((row) => row.category === 'actor' || row.category === 'actress')
-        .filter(
-          (r) => topMovieIds.has(r.tconst)
-        )
+        .filter((r) => topMovieIds.has(r.tconst));
 
       if (!relationships.length) return;
 
-      for(const rel of relationships){
-        topActorIds.add(rel.nconst)
+      for (const rel of relationships) {
+        topActorIds.add(rel.nconst);
       }
     },
     BATCH_SIZE,
   );
-
-  
 
   console.log('🔹 Importing people...');
   await streamTsv<PersonRow>(
@@ -155,7 +152,7 @@ async function bootstrap() {
       const people = batch
         .filter((p) => p.birthYear !== '\\N')
         // .filter((p) => parseInt(p.birthYear) >= 1960)
-        .filter(p => topActorIds.has(p.nconst))
+        .filter((p) => topActorIds.has(p.nconst))
         .map((row) => ({
           id: row.nconst,
           name: row.primaryName,
@@ -164,7 +161,8 @@ async function bootstrap() {
 
       if (!people.length) return;
 
-      await graph.runCypher(`
+      await graph.runCypher(
+        `
         UNWIND $people AS person
         CREATE (p:Person {id: person.id})
         SET p.name = person.name, p.birthYear = person.birthYear
@@ -182,8 +180,12 @@ async function bootstrap() {
   // index creation (speeds up following matches a lot)
   // https://github.com/apache/age/discussions/130
   // https://github.com/apache/age/discussions/45
-  await graph.runCypher(`CREATE INDEX IF NOT EXISTS person_properties_gin ON imdb_graph."Person" USING GIN (properties);`)
-  await graph.runCypher(`CREATE INDEX IF NOT EXISTS movie_properties_gin ON imdb_graph."Movie" USING GIN (properties);`)
+  await graph.runCypher(
+    `CREATE INDEX IF NOT EXISTS person_properties_gin ON imdb_graph."Person" USING GIN (properties);`,
+  );
+  await graph.runCypher(
+    `CREATE INDEX IF NOT EXISTS movie_properties_gin ON imdb_graph."Movie" USING GIN (properties);`,
+  );
 
   console.log('🔹 Linking actors to movies...');
   await streamTsv<PrincipalRow>(
@@ -200,7 +202,7 @@ async function bootstrap() {
           movieId: row.tconst,
         }));
 
-      console.log(`Inserting ${relationships.length} edges...`)
+      console.log(`Inserting ${relationships.length} edges...`);
 
       if (!relationships.length) return;
 
