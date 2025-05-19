@@ -3,3 +3,15 @@ export interface AgNode<T = Record<string, any>> {
   label: string;
   properties: T;
 }
+
+export interface Actor {
+    id: string,
+    name: string,
+    birthYear: string
+}
+
+export interface Movie {
+    id: string,
+    year: number,
+    title: string
+}

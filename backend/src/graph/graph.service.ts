@@ -45,18 +45,29 @@ export class GraphService implements OnModuleInit {
   async runCypher<T>(
     query: string,
     params: Record<string, any> = {},
-  ): Promise<AgNode<T>[]> {
-    const text = `SELECT * FROM cypher('${this.graphName}', $$ ${query} $$, $1) AS (result agtype)`;
+    columns: string[] = ["result"]
+  ): Promise<T[]> {
+    const text = `
+      SELECT * FROM cypher(
+        '${this.graphName}',
+        $$ ${query} $$,
+        $1
+      ) AS (
+        ${columns.map(c => `${c} agtype`).join(',')}
+      )
+    `;
     // console.log(text)
     const values = [params ? JSON.stringify(params) : 'NULL'];
     const res = await this.client.query(text, values);
     // todo improve typing
-    return res.rows.map((row) => {
-      const node = row.result;
-      const properties = node?.get('properties');
-      return properties instanceof Map
-        ? this.mapToObject(properties)
-        : (properties ?? node);
+    return res.rows.map((row: Record<string, any>) => {
+      const parsedRow: Record<string, any> = {}
+      for(const col of columns){
+        const ag = row[col]
+        const props = ag?.get('properties')
+        parsedRow[col] = props instanceof Map ? this.mapToObject(props) : (props ?? ag)
+      }
+      return parsedRow
     });
   }
 

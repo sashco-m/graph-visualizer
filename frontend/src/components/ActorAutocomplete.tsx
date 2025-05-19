@@ -16,8 +16,6 @@ const ActorAutocomplete = ({
     const [showDropdown, setShowDropdown] = useState(false)
 
     useEffect(() => {
-        console.log(query)
-
         const search = async () => {
             if(query === ""){
                 setResults([])
@@ -29,7 +27,7 @@ const ActorAutocomplete = ({
                 `/api/explore/search?query=${encodeURIComponent(query)}`
             ).then(res => res.json())
 
-            setResults(results)
+            setResults(results.map(r => r.result))
             setShowDropdown(true)
         }
 
@@ -38,7 +36,7 @@ const ActorAutocomplete = ({
 
     const formSubmit = (e:FormEvent) => {
         e.preventDefault()
-        // auto submit the first one in the list?
+        // TODO: auto submit the first one in the list?
     }
 
     const handleSubmit = (actor:Actor) => {
