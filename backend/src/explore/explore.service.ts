@@ -13,7 +13,6 @@ export class ExploreService {
         MATCH (a1:Person {id: $id})-[:ACTED_IN]->(m:Movie)<-[:ACTED_IN]-(a2:Person)
         WHERE a1.id <> a2.id
         RETURN DISTINCT a1, a2, m
-        LIMIT 100
         `,
       {
         id: nconst,

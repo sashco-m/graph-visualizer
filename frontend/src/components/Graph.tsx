@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useImperativeHandle, useRef } from "react"
 import { Network } from "vis-network"
 import { DataSet } from "vis-data"
 
@@ -32,9 +32,8 @@ const OPTIONS = {
             },
           };
 export interface GraphProps {
-    nodes: NodeType[],
-    edges: EdgeType[],
     onNodeClick: (id:string) => void
+    ref: React.RefObject<GraphHandle | null> 
 }
 
 export interface NodeType {
@@ -51,76 +50,71 @@ export interface EdgeType {
   label: string
 }
 
+export interface GraphHandle {
+  addData: (nodes: NodeType[], edges: EdgeType[]) => void
+}
+
+
 const Graph = ({
-    nodes,
-    edges,
-    onNodeClick
+    onNodeClick,
+    ref
 }: GraphProps) => {
     const containerRef = useRef<HTMLDivElement>(null)
+    const networkRef = useRef<Network>(null)
+    const nodeDS = useRef<DataSet<NodeType, "id">>(new DataSet([]))
+    const edgeDS = useRef<DataSet<EdgeType, "id">>(new DataSet([]))
     
-    const prevStateRef = useRef<{
-        positions: Record<string, { x: number, y: number }>,
-        view: { x: number, y: number },
-        scale: number
-      }>({
-        positions: {},
-        view: { x: 0, y: 0 },
-        scale: 1
-      });
+      // give ref to the network 
+      useImperativeHandle(ref, () => ({
+        addData: (nodes: NodeType[], edges: EdgeType[]) => {
+          if(!networkRef.current) return
 
+          // find all the unique added nodes/edges
+          const existingNodeIds = new Set(nodeDS.current.getIds())
+          const existingEdgeIds = new Set(edgeDS.current.getIds())
+          const nodesToAdd = nodes.filter(n => !existingNodeIds.has(n.id))
+          const edgesToAdd = edges.filter(e => !existingEdgeIds.has(e.id))
 
+          nodeDS.current.add(nodesToAdd)
+          edgeDS.current.update(edgesToAdd);
+
+        }
+      }));
+    
+    // mount/unmount useeffect
     useEffect(()=> {
-        if(!containerRef.current) return
+      if(!containerRef.current) return
 
-        console.log('refresh network...')
+      networkRef.current = new Network(
+        containerRef.current,
+        {
+          nodes: nodeDS.current,
+          edges: edgeDS.current
+        },
+        OPTIONS
+      )
 
-        // previous render data 
-        const { positions, scale, view } = prevStateRef.current
+      // destroy on unmount
+      return () => 
+        networkRef.current!.destroy()
 
-        // Rehydrate nodes: freeze existing, let new ones move
-        const nodeDS = new DataSet<NodeType>(
-            nodes.map((node) => {
-            const pos = positions[node.id];
-            return pos
-                ? { ...node, x: pos.x, y: pos.y } //, fixed: { x: true, y: true } }
-                : node; 
-            })
-        );
-    
-        const edgeDS = new DataSet<EdgeType>(edges);
+    }, [])
 
-        // init network
-        const network = new Network(
-            containerRef.current, 
-            { 
-                nodes: nodeDS,
-                edges: edgeDS
-            },
-            OPTIONS
-            )
+    // add the click handler
+    useEffect(() => {
+      if(!networkRef.current) return
 
-        network.on('click', (params) => {
+      const handleClick = (params: { nodes: string[]; }) => {
             const nodeId = params.nodes[0];
             if (nodeId) onNodeClick(nodeId);
-            });
+            }
 
-        // Restore view
-        network.moveTo({ position: view, scale, animation: false });
+      networkRef.current.on('click', handleClick);
 
+      return () => 
+        networkRef.current?.off('click', handleClick)
 
-        return () => {
-            // TODO fix this somehow for strict mode
-            //  not sure if possible since this can't really be a pure operation unless
-            //  we provide position data, which means store it in the backend somehow
-            // save positions before destruction?
-            prevStateRef.current.positions = network.getPositions();
-            prevStateRef.current.view = network.getViewPosition();
-            prevStateRef.current.scale = network.getScale();
-            // destroy
-            network.destroy();
-        }
-    },[nodes, edges, onNodeClick])
-
+    }, [onNodeClick])
 
     return (
         <div
