@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
 import ActorAutocomplete from './components/ActorAutocomplete'
-import Graph, { type GraphHandle } from './components/Graph'
+import Graph, { type GraphHandle } from './components/Graph/Graph'
 
 function App() {
   const [rootActor, setRootActor] = useState("")
