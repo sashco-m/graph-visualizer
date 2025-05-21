@@ -13,7 +13,8 @@ export interface NodeType {
   id: string,
   label: string
   x?: number,
-  y?: number
+  y?: number,
+  fixed?: boolean,
 }
 
 export interface EdgeType {
@@ -24,7 +25,7 @@ export interface EdgeType {
 }
 
 export interface GraphHandle {
-  addData: (nodes: NodeType[], edges: EdgeType[]) => void
+  addData: (nodes: NodeType[], edges: EdgeType[], rootId?: string) => void
 }
 
 const Graph = ({
@@ -38,7 +39,7 @@ const Graph = ({
   
     // give ref to the network 
     useImperativeHandle(ref, () => ({
-      addData: (nodes: NodeType[], edges: EdgeType[]) => {
+      addData: (nodes: NodeType[], edges: EdgeType[], rootId?: string) => {
         if(!networkRef.current) return
 
         // find all the unique added nodes/edges
@@ -47,8 +48,15 @@ const Graph = ({
         const nodesToAdd = nodes.filter(n => !existingNodeIds.has(n.id))
         const edgesToAdd = edges.filter(e => !existingEdgeIds.has(e.id))
 
-        nodeDS.current.add(nodesToAdd)
         edgeDS.current.update(edgesToAdd);
+
+        const rootPosition = rootId ? networkRef.current.getPosition(rootId) : { x:0, y:0 }
+          
+        nodeDS.current.add(nodesToAdd.map(n => ({
+          ...n,
+          x: rootPosition.x + (Math.random() * 200 - 100),
+          y: rootPosition.y + (Math.random() * 200 - 100)
+        })))
 
       }
     }));

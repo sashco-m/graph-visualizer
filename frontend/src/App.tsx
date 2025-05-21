@@ -20,7 +20,7 @@ function App() {
 
     const {newNodes, edges} = graphData
 
-    graphRef.current?.addData(newNodes, edges)
+    graphRef.current?.addData(newNodes, edges, id)
     setExpanded((prev) => [id, ...prev])
 
   }, [expanded])
