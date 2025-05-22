@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react"
 
-interface Actor {
+export interface Actor {
     id: string,
     name: string,
     birthYear: string
@@ -36,7 +36,8 @@ const ActorAutocomplete = ({
 
     const formSubmit = (e:FormEvent) => {
         e.preventDefault()
-        // TODO: auto submit the first one in the list?
+        onSelect(results[0])
+        setShowDropdown(false)
     }
 
     const handleSubmit = (actor:Actor) => {

@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import './App.css'
-import ActorAutocomplete from './components/ActorAutocomplete'
+import ActorAutocomplete, { type Actor } from './components/ActorAutocomplete'
 import Graph, { type GraphHandle } from './components/Graph/Graph'
 
 function App() {
@@ -13,7 +13,6 @@ function App() {
   const expandNode = useCallback(async (id: string) => {
     if(expanded.includes(id)) return
 
-
     const graphData = await fetch(
         `/api/explore/expand-node/${encodeURIComponent(id)}`
     ).then(res => res.json())
@@ -25,25 +24,22 @@ function App() {
 
   }, [expanded])
 
-  useEffect(() => {
-    console.log(rootActor)
-    if(!rootActor) return
+  const onSelectRoot = useCallback(async (root: Actor) => {
+    setRootActor(root.id)
 
-    const initGraph = async () => {
-      const graphData = await fetch(
-          `/api/explore/expand-node/${encodeURIComponent(rootActor)}`
+    graphRef.current?.clear()
+
+    const graphData = await fetch(
+          `/api/explore/expand-node/${encodeURIComponent(root.id)}`
       ).then(res => res.json())
 
-      graphRef.current?.addData(
-        [graphData.rootNode, ...graphData.newNodes], 
-        graphData.edges,
-      )
+    graphRef.current?.addData(
+      [graphData.rootNode, ...graphData.newNodes], 
+      graphData.edges,
+    )
 
-      setExpanded([rootActor])
-    }
-
-    initGraph()
-  }, [rootActor])
+    setExpanded([root.id])
+  }, [])
 
   return (
     <div className='relative w-screen h-screen overflow-hidden'>
@@ -56,7 +52,7 @@ function App() {
           !rootActor ? 'translate-y-100' : 'translate-y-10'
         }`}
       >
-        <ActorAutocomplete onSelect={(actor) => setRootActor(actor.id)}/>
+        <ActorAutocomplete onSelect={onSelectRoot}/>
       </div>
     </div>
   )

@@ -30,6 +30,7 @@ export interface EdgeType {
 
 export interface GraphHandle {
   addData: (nodes: NodeType[], edges: EdgeType[], rootId?: string) => void
+  clear: () => void
 }
 
 const Graph = ({
@@ -83,6 +84,10 @@ const Graph = ({
         }, [] as Partial<NodeType>[])
 
         nodeDS.current.update(nodesToUpdate)
+      },
+      clear: () => {
+        nodeDS.current.clear()
+        edgeDS.current.clear()
       }
     }));
   
