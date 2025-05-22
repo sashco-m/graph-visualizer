@@ -1,11 +1,15 @@
 import { useCallback, useRef, useState } from 'react'
 import './App.css'
-import ActorAutocomplete, { type Actor } from './components/ActorAutocomplete'
-import Graph, { type GraphHandle } from './components/Graph/Graph'
+import Graph from './components/Graph/Graph'
+import InfoBar from './components/InfoBar'
+import type { GraphHandle } from './components/Graph/Graph.dto'
+import type { Actor } from './components/ActorAutocomplete/ActorAutocomplete'
+import ActorAutocomplete from './components/ActorAutocomplete/ActorAutocomplete'
 
 function App() {
   const [rootActor, setRootActor] = useState("")
   const [expanded, setExpanded] = useState<string[]>([])
+  const [nodeCount, setNodeCount] = useState(0)
 
   // graph
   const graphRef = useRef<GraphHandle>(null)
@@ -21,6 +25,7 @@ function App() {
 
     graphRef.current?.addData(newNodes, edges, id)
     setExpanded((prev) => [id, ...prev])
+    setNodeCount(graphRef.current?.getNodeCount() ?? 0)
 
   }, [expanded])
 
@@ -39,6 +44,7 @@ function App() {
     )
 
     setExpanded([root.id])
+    setNodeCount(graphRef.current?.getNodeCount() ?? 0)
   }, [])
 
   return (
@@ -54,6 +60,16 @@ function App() {
       >
         <ActorAutocomplete onSelect={onSelectRoot}/>
       </div>
+      
+        <div className={`absolute h-1/4 w-full bottom-0 p-10 transition transform duration-2000 ${!rootActor ? 'translate-y-100 invisible' : 'visible'}`}>
+          <InfoBar 
+            nodeCount={nodeCount} 
+            expanded={expanded} 
+            getNode={graphRef.current?.getNode ?? (() => null)}
+            getNodes={graphRef.current?.getNodes ?? (()=>[])}
+            focusNode={graphRef.current?.focusNode ?? (()=>null)}
+          />
+        </div>
     </div>
   )
 }

@@ -2,36 +2,7 @@ import { useEffect, useImperativeHandle, useRef } from "react"
 import { Network } from "vis-network"
 import { DataSet } from "vis-data"
 import { OPTIONS } from "./Graph.options"
-
-
-export interface GraphProps {
-  onNodeClick: (id:string) => void
-  ref: React.RefObject<GraphHandle | null> 
-}
-
-export interface NodeType {
-  id: string,
-  label: string
-  size?: number,
-  font?: {
-    size?: number
-  },
-  x?: number,
-  y?: number,
-  fixed?: boolean,
-}
-
-export interface EdgeType {
-  id: string
-  from: string,
-  to:string,
-  label: string
-}
-
-export interface GraphHandle {
-  addData: (nodes: NodeType[], edges: EdgeType[], rootId?: string) => void
-  clear: () => void
-}
+import type { EdgeType, GraphProps, NodeType } from "./Graph.dto"
 
 const Graph = ({
   onNodeClick,
@@ -88,7 +59,11 @@ const Graph = ({
       clear: () => {
         nodeDS.current.clear()
         edgeDS.current.clear()
-      }
+      },
+      getNodeCount: () => nodeDS.current.length,
+      getNode: (id: string) => nodeDS.current.get(id),
+      getNodes: () => nodeDS.current.get(),
+      focusNode: (id: string) => networkRef.current?.focus(id, { animation: true, scale: 1.25 })
     }));
   
   // mount/unmount useeffect
