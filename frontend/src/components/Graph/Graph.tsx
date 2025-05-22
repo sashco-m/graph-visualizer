@@ -12,6 +12,10 @@ export interface GraphProps {
 export interface NodeType {
   id: string,
   label: string
+  size?: number,
+  font?: {
+    size?: number
+  },
   x?: number,
   y?: number,
   fixed?: boolean,
@@ -50,6 +54,7 @@ const Graph = ({
 
         edgeDS.current.update(edgesToAdd);
 
+        // add nodes around the root if it exists
         const rootPosition = rootId ? networkRef.current.getPosition(rootId) : { x:0, y:0 }
           
         nodeDS.current.add(nodesToAdd.map(n => ({
@@ -58,6 +63,26 @@ const Graph = ({
           y: rootPosition.y + (Math.random() * 200 - 100)
         })))
 
+        // update sizes of all nodes 
+        const degreeMap = edgesToAdd.reduce((acc, cur) => {
+          acc[cur.from] = (acc[cur.from] || 0) + 1
+          acc[cur.to] = (acc[cur.to] || 0) + 1
+          return acc
+        }, {} as Record<string, number>)
+
+        const nodesToUpdate = Object.entries(degreeMap).reduce((acc, cur) => {
+          const curNode = nodeDS.current.get(cur[0]) 
+          acc.push({ 
+            id: cur[0],
+            size: (curNode?.size ?? 16) + Math.log(cur[1]) * 10,
+            font: {
+              size: (curNode?.font?.size ?? 14) + Math.log(cur[1]) * 10,
+            }
+          })
+          return acc
+        }, [] as Partial<NodeType>[])
+
+        nodeDS.current.update(nodesToUpdate)
       }
     }));
   

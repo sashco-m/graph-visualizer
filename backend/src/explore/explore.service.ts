@@ -32,11 +32,30 @@ export class ExploreService {
       seen.add(actor.id)
     }
 
+    // hash edge names to get colour
+    const stringToColour = (str: string) => {
+      let hash = 0;
+      str.split('').forEach(char => {
+        hash = char.charCodeAt(0) + ((hash << 5) - hash)
+      })
+      let colour = '#'
+      for (let i = 0; i < 3; i++) {
+        const value = (hash >> (i * 8)) & 0xff
+        colour += value.toString(16).padStart(2, '0')
+      }
+      return colour
+    }
+
     // return nodes and edges
     return {
       rootNode: { id: root.id, label: root.name },
       newNodes,
-      edges: result.map(r => ({ id: `${r.a1.id}-${r.m.id}-${r.a2.id}`, from: r.a1.id, to: r.a2.id, label: r.m.title }))
+      edges: result.map(r => ({ 
+        id: `${r.a1.id}-${r.m.id}-${r.a2.id}`,
+        color: stringToColour(r.m.id),
+        from: r.a1.id, to: r.a2.id,
+        label: r.m.title
+      }))
     }
   }
 
