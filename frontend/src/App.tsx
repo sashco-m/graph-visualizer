@@ -2,14 +2,16 @@ import { useCallback, useRef, useState } from 'react'
 import './App.css'
 import Graph from './components/Graph/Graph'
 import InfoBar from './components/InfoBar'
-import type { GraphHandle } from './components/Graph/Graph.dto'
+import type { NodeType, GraphHandle } from './components/Graph/Graph.dto'
 import type { Actor } from './components/ActorAutocomplete/ActorAutocomplete'
 import ActorAutocomplete from './components/ActorAutocomplete/ActorAutocomplete'
+import NodeModal from './components/NodeModal'
 
 function App() {
   const [rootActor, setRootActor] = useState("")
   const [expanded, setExpanded] = useState<string[]>([])
   const [nodeCount, setNodeCount] = useState(0)
+  const [hoveredNode, setHoveredNode] = useState("")
 
   // graph
   const graphRef = useRef<GraphHandle>(null)
@@ -50,7 +52,22 @@ function App() {
   return (
     <div className='relative w-screen h-screen overflow-hidden'>
       <div className='absolute inset-0 z-0'>
-        <Graph ref={graphRef} onNodeClick={expandNode}/>
+        <Graph 
+          ref={graphRef} 
+          onNodeClick={expandNode} 
+          onNodeBlur={() => setHoveredNode("")}
+          onNodeHover={(id: string) => setHoveredNode(id)}
+          />
+        <NodeModal
+          node={graphRef.current?.getNode(hoveredNode) ?? null}
+          getDOMPosition={graphRef.current?.getDOMPosition ?? (()=>({ x: 0, y: 0}))}
+          isExpanded={expanded.includes(hoveredNode)}
+          onUnexpand={(id) => {
+            graphRef.current?.removeNode(id)
+            setExpanded(expanded.filter(e => e !== id))}
+          }
+          numConnections={graphRef.current?.getNumConnections(hoveredNode) ?? 0}
+        />
       </div>
 
       <div 

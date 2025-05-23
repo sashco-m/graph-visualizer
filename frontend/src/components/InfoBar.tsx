@@ -1,4 +1,4 @@
-import { useState, type Dispatch, type SetStateAction } from "react"
+import { type Dispatch, type SetStateAction } from "react"
 import type { Actor } from "./ActorAutocomplete/ActorAutocomplete"
 import Autocomplete from "./ActorAutocomplete/Autocomplete"
 import type { NodeType } from "./Graph/Graph.dto"

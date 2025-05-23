@@ -6,6 +6,8 @@ import type { EdgeType, GraphProps, NodeType } from "./Graph.dto"
 
 const Graph = ({
   onNodeClick,
+  onNodeBlur,
+  onNodeHover,
   ref
 }: GraphProps) => {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -63,7 +65,50 @@ const Graph = ({
       getNodeCount: () => nodeDS.current.length,
       getNode: (id: string) => nodeDS.current.get(id),
       getNodes: () => nodeDS.current.get(),
-      focusNode: (id: string) => networkRef.current?.focus(id, { animation: true, scale: 1.25 })
+      focusNode: (id: string) => {
+        networkRef.current?.focus(id, { animation: true, scale: 1.25 })
+        nodeDS.current.update({ id, color: { background: "#66ccff" }})
+      },
+      getDOMPosition: (id: string) =>  {
+        const canvasPos = networkRef.current?.getPosition(id) ?? { x:0 ,y:0 }
+        return networkRef.current?.canvasToDOM(canvasPos) ?? { x: 0, y: 0}
+      },
+      removeNode: (id:string) => {
+        // find all neighborus
+        const neighbours = edgeDS.current.get().reduce((acc, e) => {
+          if(e.to != id && e.from != id) return acc
+          const neighbour = e.to == id ? e.from : e.to
+          acc.add(neighbour)
+          return acc
+        }, new Set<string>())
+
+        console.log(neighbours)
+
+        // need to see if their ONLY connections is id
+        const nodesToRemove: string[] = []
+        for(const n of neighbours.values()){
+          console.log(n)
+          const allNeighbours = edgeDS.current.get().reduce((acc, e) =>{
+            if(e.to != n && e.from != n) return acc
+            const neighbour = e.to == n ? e.from : e.to
+            acc.push(neighbour)
+            return acc
+          }, [] as string[]) 
+          if(allNeighbours.some((n) => n != id)) continue 
+
+          nodesToRemove.push(n)
+        }
+        console.log(nodesToRemove)
+
+        nodeDS.current.remove(nodesToRemove)
+      },
+      getNumConnections: (id:string) => {
+        return edgeDS.current.get().reduce((acc, e) => {
+          if(e.to != id && e.from != id) return acc
+          acc += 1
+          return acc
+        }, 0)
+      }
     }));
   
   // mount/unmount useeffect
@@ -100,6 +145,38 @@ const Graph = ({
       networkRef.current?.off('click', handleClick)
 
   }, [onNodeClick])
+
+  useEffect(() => {
+    if(!networkRef.current) return
+
+    const handleHover = (params: { node: string; }) => {
+      const nodeId = params.node;
+      if (nodeId) onNodeHover(nodeId);
+    }
+
+    networkRef.current.on('hoverNode', handleHover);
+
+    return () => 
+      networkRef.current?.off('hoverNode', handleHover)
+
+  }, [onNodeHover])
+
+  useEffect(() => {
+    if(!networkRef.current) return
+
+    const handleBlur= (params: { node: string }) => {
+      const nodeId = params.node;
+      if (nodeId) onNodeBlur(nodeId);
+      // in case the node was focused
+      nodeDS.current.update({ id: nodeId, color: { background: "#ffffff" }})
+    }
+
+    networkRef.current.on('blurNode', handleBlur);
+
+    return () => 
+      networkRef.current?.off('blurNode', handleBlur)
+
+  }, [onNodeBlur])
 
   return (
     <div
