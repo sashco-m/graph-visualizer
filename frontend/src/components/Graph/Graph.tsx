@@ -35,46 +35,43 @@ const Graph = ({
         //  in the same movies
         // make this a toggle-able option since it hurts performance
         // TODO is this method better or vis js native clustering?
-        if(settings.clustering){
-          const psudoEdges = nodesToAdd.reduce((acc, node) => {
-            for(const movieId of node.movies){
-              const relatedIds = movieToActors.current.get(movieId) ?? new Set()
+        const psudoEdges = nodesToAdd.reduce((acc, node) => {
+          for(const movieId of node.movies){
+            const relatedIds = movieToActors.current.get(movieId) ?? new Set()
 
-              for(const otherId of relatedIds){
-                // Skip if already directly connected
-                const hasRealEdge = edgesToAdd.some(e =>
-                  (e.from === node.id && e.to === otherId) ||
-                  (e.from === otherId && e.to === node.id)
-                );
-                if (hasRealEdge) continue;
+            for(const otherId of relatedIds){
+              // Skip if already directly connected
+              const hasRealEdge = edgesToAdd.some(e =>
+                (e.from === node.id && e.to === otherId) ||
+                (e.from === otherId && e.to === node.id)
+              );
+              if (hasRealEdge) continue;
 
-                const pseudoEdgeId = `pseudo-${[node.id, otherId].sort().join('-')}-${movieId}`;
-                if (!edgeDS.current.get(pseudoEdgeId)) {
-                  acc.push({
-                    id: pseudoEdgeId,
-                    from: node.id,
-                    to: otherId,
-                    hidden: true,
-                    length: 40,
-                    springConstant: 0.015,
-                  });
-                }
+              const pseudoEdgeId = `pseudo-${[node.id, otherId].sort().join('-')}-${movieId}`;
+              if (!edgeDS.current.get(pseudoEdgeId)) {
+                acc.push({
+                  id: pseudoEdgeId,
+                  from: node.id,
+                  to: otherId,
+                  hidden: true,
+                  length: 40,
+                  springConstant: 0.015,
+                });
               }
-
-              // Add this node to the movie mapping
-              if (!movieToActors.current.has(movieId)) {
-                movieToActors.current.set(movieId, new Set());
-              }
-              movieToActors.current.get(movieId)!.add(node.id)
             }
-            return acc
-          }, [] as EdgeType[])
-          
-          // TODO in edgesToAdd, see if there are multiple edges between the same 2 nodes
-          //  make these edges dynamic or else they will overlap 
-          edgesToAdd.push(...psudoEdges)
-        }
 
+            // Add this node to the movie mapping
+            if (!movieToActors.current.has(movieId)) {
+              movieToActors.current.set(movieId, new Set());
+            }
+            movieToActors.current.get(movieId)!.add(node.id)
+          }
+          return acc
+        }, [] as EdgeType[])
+        
+        // TODO in edgesToAdd, see if there are multiple edges between the same 2 nodes
+        //  make these edges dynamic or else they will overlap 
+        edgesToAdd.push(...psudoEdges)
         edgeDS.current.update(edgesToAdd);
 
         // add nodes around the root if it exists

@@ -1,25 +1,22 @@
 import { createContext, useState, type ReactNode, useEffect } from "react"
 
-export type Settings = "hideBottomBar" | "physicsEngine" | "clustering"
+export type Settings = "hideBottomBar" | "physicsEngine"
 
 // options
 export const options: Record<Settings, any[]> = {
     "hideBottomBar": [true, false],
     "physicsEngine": ["barnesHut", "forceAtlas2Based"],
-    "clustering": [true, false],
 }
 
     // tooltips
 export const tips: Record<Settings, string> = {
     "hideBottomBar": "Hides the node count/search bar",
     "physicsEngine": "barnesHut is more stable while forceAtlas2Based is flows nicer.",
-    "clustering": "Clusters actors found in the same movies (reduces performance). Requires refresh.",
 }
 
 const defaults:Record<Settings, any> = {
         "hideBottomBar": false,
         "physicsEngine": "barnesHut",
-        "clustering": true, 
     }
 
 interface SettingsContext {

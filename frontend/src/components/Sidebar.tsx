@@ -44,10 +44,6 @@ const Sidebar = ({isOpen}: SidebarProps) => {
                 </li>)
             }
             </ul>
-            <div>
-                <h3 className="font-bold">Tips</h3>
-                <p>Clustering + barnesHut or no clustering + forceAtlas2Based both look good</p>
-            </div>
             <div className="self-end">
                 made by <a href="https://mistelbacher.ca">sashco mistelbacher</a>
             </div>
