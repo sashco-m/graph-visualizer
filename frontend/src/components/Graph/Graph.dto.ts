@@ -10,6 +10,7 @@ export interface GraphProps {
 export interface NodeType {
   id: string,
   label: string
+  movies: string[],
   size?: number,
   font?: {
     size?: number
@@ -20,13 +21,18 @@ export interface NodeType {
   color?: {
     background?: string
   }
+  mass?: number
 }
 
 export interface EdgeType {
   id: string
   from: string,
   to:string,
-  label: string
+  label?: string
+  movieId?: string
+  hidden?: boolean
+  length?: number
+  springConstant?: number
 }
 
 export interface GraphHandle {
@@ -37,6 +43,5 @@ export interface GraphHandle {
   getNodes: () => NodeType[]
   focusNode: (id: string) => void
   getDOMPosition: (id: string) => Position
-  removeNode: (id:string) => void
   getNumConnections: (id:string) => number
 }

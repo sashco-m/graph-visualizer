@@ -19,7 +19,7 @@ const InfoBar = ({
 }: InfoBarProps) => {
     return (
         <div className='flex justify-center'>
-            <div className="border bg-[#242424]/80 rounded w-full xl:w-1/2 h-full flex p-5 justify-evenly sm:flex-row flex-col gap-8 relative">
+            <div className="border bg-[#242424]/80 rounded w-full xl:w-1/2 h-full flex p-5 justify-evenly sm:flex-row flex-col gap-4 relative">
                 <div className="flex flex-col">
                     <h1 className="text-4xl font-bold">{nodeCount}</h1>
                     <h3 className="text-md">nodes</h3>

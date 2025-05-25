@@ -51,6 +51,7 @@ function Autocomplete<T extends { id: string }>({
                 required
                 onChange={(e) => setQuery(e.target.value)}
                 onFocus={() => setShowDropdown(true)}
+                onBlur={() => setShowDropdown(false)}
                 autoComplete="off"
             />
             { (showDropdown && results.length > 0) && 
@@ -59,7 +60,10 @@ function Autocomplete<T extends { id: string }>({
                     <li
                         key={item.id}
                         className="px-4 py-2 cursor-pointer hover:bg-[#4E4E4E]/80 bg-[#242424]/80"
-                        onClick={() => handleSubmit(item)}
+                        onMouseDown={(e) => {
+                            e.preventDefault()
+                            handleSubmit(item)
+                        }}
                     >
                         {displayItem(item)}
                     </li>

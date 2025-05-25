@@ -6,11 +6,10 @@ interface NodeModalProps {
     node: NodeType | null
     isExpanded: boolean
     numConnections: number
-    onUnexpand: (id: string) => void
     getDOMPosition: (id: string) => Position
   }
   
-  const NodeModal = ({ node, isExpanded, numConnections, onUnexpand, getDOMPosition }: NodeModalProps) => {
+  const NodeModal = ({ node, isExpanded, numConnections, getDOMPosition }: NodeModalProps) => {
     const [pos, setPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
     const animationFrame = useRef<number>(-1)
 
@@ -43,12 +42,11 @@ interface NodeModalProps {
         <div>Connections: {numConnections}</div>
   
         {isExpanded && (
-          <button
-            onClick={() => onUnexpand(node.id)}
-            className="mt-2 bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 text-xs"
+          <div
+            className="mt-2 bg-red-600 text-white px-2 py-1 rounded text-xs"
           >
-            Collapse
-          </button>
+            Expanded
+          </div>
         )}
       </div>
     )

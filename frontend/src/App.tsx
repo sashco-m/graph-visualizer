@@ -1,17 +1,21 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useContext, useRef, useState } from 'react'
 import './App.css'
 import Graph from './components/Graph/Graph'
 import InfoBar from './components/InfoBar'
-import type { NodeType, GraphHandle } from './components/Graph/Graph.dto'
+import type { GraphHandle } from './components/Graph/Graph.dto'
 import type { Actor } from './components/ActorAutocomplete/ActorAutocomplete'
 import ActorAutocomplete from './components/ActorAutocomplete/ActorAutocomplete'
 import NodeModal from './components/NodeModal'
+import Sidebar from './components/Sidebar'
+import { SettingsContext } from './context/SettingsContext'
 
 function App() {
   const [rootActor, setRootActor] = useState("")
   const [expanded, setExpanded] = useState<string[]>([])
   const [nodeCount, setNodeCount] = useState(0)
   const [hoveredNode, setHoveredNode] = useState("")
+  const [menuOpen, setMenuOpen] = useState(false)
+  const { settings }= useContext(SettingsContext)
 
   // graph
   const graphRef = useRef<GraphHandle>(null)
@@ -42,7 +46,7 @@ function App() {
 
     graphRef.current?.addData(
       [graphData.rootNode, ...graphData.newNodes], 
-      graphData.edges,
+      graphData.edges
     )
 
     setExpanded([root.id])
@@ -62,12 +66,12 @@ function App() {
           node={graphRef.current?.getNode(hoveredNode) ?? null}
           getDOMPosition={graphRef.current?.getDOMPosition ?? (()=>({ x: 0, y: 0}))}
           isExpanded={expanded.includes(hoveredNode)}
-          onUnexpand={(id) => {
-            graphRef.current?.removeNode(id)
-            setExpanded(expanded.filter(e => e !== id))}
-          }
           numConnections={graphRef.current?.getNumConnections(hoveredNode) ?? 0}
         />
+      </div>
+
+      <div className='absolute z-100'>
+        <img className="w-12 h-12" src="public/burger_white.svg" onClick={()=>setMenuOpen(v => !v)}/>
       </div>
 
       <div 
@@ -78,7 +82,8 @@ function App() {
         <ActorAutocomplete onSelect={onSelectRoot}/>
       </div>
       
-        <div className={`absolute h-1/4 w-full bottom-0 p-10 transition transform duration-2000 ${!rootActor ? 'translate-y-100 invisible' : 'visible'}`}>
+      {
+        !settings.hideBottomBar && <div className={`absolute w-full bottom-10 transition transform duration-2000 ${!rootActor ? 'translate-y-100 invisible' : 'visible'}`}>
           <InfoBar 
             nodeCount={nodeCount} 
             expanded={expanded} 
@@ -87,6 +92,11 @@ function App() {
             focusNode={graphRef.current?.focusNode ?? (()=>null)}
           />
         </div>
+      }
+
+      
+
+      <Sidebar isOpen={menuOpen} />
     </div>
   )
 }

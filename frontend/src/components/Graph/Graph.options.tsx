@@ -1,19 +1,42 @@
+export const physics_forceAtlas2Based= {
+    stabilization: {
+        enabled: true,
+        iterations: 1000,
+        fit: true
+    },
+    solver: "forceAtlas2Based",
+    forceAtlas2Based: {
+        gravitationalConstant: -150,
+        centralGravity: 0.005,
+        springLength: 80,
+        springConstant: 0.02,
+        damping: 2.5,
+    },
+    minVelocity: 0.2,
+}
+
+export const physics_barnesHut = {
+    solver: "barnesHut",
+    barnesHut: {
+        gravitationalConstant: -50000,   // 🔹 STRONGER repulsion (try -10000 to -50000)
+        centralGravity: 0.01,            // 🔹 Keep low to reduce clumping at center
+        springLength: 200,               // 🔹 Longer springs = more space between nodes
+        springConstant: 0.01,           // 🔹 Very loose springs for organic spread
+        damping: 0.85,
+        avoidOverlap: 0.5                 // 🔹 Force spacing even between same-position nodes
+    },
+    stabilization: {
+        enabled: true,
+        iterations: 300,
+        updateInterval: 50
+    },
+    minVelocity: 0.2
+}
+
 export const OPTIONS = {
     layout: {
         improvedLayout: false,
         randomSeed: 42
-    },
-    physics: {
-        stabilization: false,
-        solver: "forceAtlas2Based",
-        forceAtlas2Based: {
-            gravitationalConstant: -50,
-            centralGravity: 0.005,
-            springLength: 80,
-            springConstant: 0.04,
-            damping: 0.85,
-        },
-        minVelocity: 0.75,
     },
     interaction: {
         hover: true,
@@ -52,5 +75,9 @@ export const OPTIONS = {
         },
         width: 1.2,
         selectionWidth: 2,
+        smooth: {
+            type: "continuous",
+            forceDirection: "none"
+        },
     },
 };

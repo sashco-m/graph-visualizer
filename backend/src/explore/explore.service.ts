@@ -46,15 +46,31 @@ export class ExploreService {
       return colour
     }
 
+    // include the movies for a node
+    const nodeToMovies = result.reduce((acc, edge) => {
+      if (!acc[edge.a1.id]) acc[edge.a1.id] = new Set()
+      if (!acc[edge.a2.id]) acc[edge.a2.id] = new Set()
+
+      if (edge.m.id) {
+        acc[edge.a1.id].add(edge.m.id)
+        acc[edge.a2.id].add(edge.m.id)
+      } 
+      return acc
+    }, {} as Record<string, Set<string>>) 
+
     // return nodes and edges
     return {
-      rootNode: { id: root.id, label: root.name },
-      newNodes,
+      rootNode: { id: root.id, label: root.name, movies: Array.from(nodeToMovies[root.id] ?? []) },
+      newNodes: newNodes.map(n => ({
+        ...n,
+        movies: Array.from(nodeToMovies[n.id] ?? [])
+      })),
       edges: result.map(r => ({ 
         id: `${r.a1.id}-${r.m.id}-${r.a2.id}`,
         color: stringToColour(r.m.id),
         from: r.a1.id, to: r.a2.id,
-        label: r.m.title
+        label: r.m.title,
+        movieId: r.m.id
       }))
     }
   }
