@@ -80,6 +80,9 @@ function App() {
         }`}
       >
         <ActorAutocomplete onSelect={onSelectRoot}/>
+        { !rootActor && 
+          <div className="text-gray-400 text-sm italic p-2">hint: click a node to expand the graph</div>
+        }
       </div>
       
       {

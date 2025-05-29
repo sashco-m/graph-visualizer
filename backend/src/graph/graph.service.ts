@@ -64,6 +64,13 @@ export class GraphService implements OnModuleInit {
       const parsedRow: Record<string, any> = {}
       for(const col of columns){
         const ag = row[col]
+        // could be an object (node/edge) or a scalar
+        if(typeof ag !== 'object'){
+          // may need to JSON parse
+          parsedRow[col] = ag
+          continue
+        }
+
         const props = ag?.get('properties')
         parsedRow[col] = props instanceof Map ? this.mapToObject(props) : (props ?? ag)
       }

@@ -7,6 +7,19 @@ import { GraphService } from 'src/graph/graph.service';
 export class ExploreService {
   constructor(private readonly graphService: GraphService) {}
 
+  async nodeConnections(nconst: string) {
+    const result = await this.graphService.runCypher<{ result: number }>(`
+        MATCH (a1:Person {id: $id})-[:ACTED_IN]->(m:Movie)<-[:ACTED_IN]-(a2:Person)
+        WHERE a1.id <> a2.id
+        RETURN COUNT(DISTINCT a2)
+        `,
+      {
+        id: nconst,
+      },
+    );
+    return result[0]
+  }
+
   async expandNode(nconst: string) {
 
     const result = await this.graphService.runCypher<{a1: Actor, a2: Actor, m: Movie }>(`

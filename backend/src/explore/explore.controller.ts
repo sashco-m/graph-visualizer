@@ -17,4 +17,10 @@ export class ExploreController {
   async search(@Query('query') query: string) {
     return this.exploreService.searchNodes(query);
   }
+
+  // returns count of connections
+  @Get('node-connections/:id/')
+  async nodeConnections(@Param('id') id:string){
+    return this.exploreService.nodeConnections(id)
+  }
 }
