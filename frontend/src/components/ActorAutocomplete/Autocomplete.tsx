@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent, type Dispatch, type SetStateAction } from "react"
 
 export interface AutocompleteProps<T> {
+    dropdownDirection?: 'UP' | 'DOWN'
     onSelect: (item: T) => void
     onQueryChange: (query: string, setResults: Dispatch<SetStateAction<T[]>>) => void
     label: string
@@ -13,7 +14,9 @@ function Autocomplete<T extends { id: string }>({
    onQueryChange,
    label,
    placeholder,
-   displayItem
+   displayItem,
+   // could be calculated using getBoundingClientRect
+   dropdownDirection = 'DOWN'
  }: AutocompleteProps<T>) {
     const [query, setQuery] = useState("")
     const [results, setResults] = useState<T[]>([])
@@ -55,7 +58,9 @@ function Autocomplete<T extends { id: string }>({
                 autoComplete="off"
             />
             { (showDropdown && results.length > 0) && 
-            <ul className="absolute z-10 mt-15 border rounded shadow-lg max-h-60 overflow-auto w-full">
+            <ul className={`absolute z-10 border rounded shadow-lg max-h-60 overflow-auto w-full ${
+                dropdownDirection === 'DOWN' ? "top-full mt-2" : "bottom-full"
+            }`}>
                 {results.map((item) => (
                     <li
                         key={item.id}

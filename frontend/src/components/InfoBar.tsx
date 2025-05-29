@@ -42,6 +42,7 @@ const InfoBar = ({
                         label="search the graph"
                         placeholder=""
                         displayItem={(actor) => actor.name}
+                        dropdownDirection="UP"
                     />
                 </div>
             </div>
