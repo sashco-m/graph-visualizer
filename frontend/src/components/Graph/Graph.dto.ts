@@ -4,6 +4,8 @@ export interface GraphProps {
   onNodeClick: (id:string) => void
   onNodeHover: (id:string) => void
   onNodeBlur: (id:string) => void
+  onEdgeHover: (id:string, { x, y}: {x:number, y:number}) => void
+  onEdgeBlur: (id:string) => void
   ref: React.RefObject<GraphHandle | null> 
 }
 
@@ -11,6 +13,7 @@ export interface NodeType {
   id: string,
   label: string
   movies: string[],
+  birthYear: string,
   size?: number,
   font?: {
     size?: number
@@ -28,6 +31,7 @@ export interface EdgeType {
   id: string
   from: string,
   to:string,
+  year: number,
   label?: string
   movieId?: string
   hidden?: boolean
@@ -40,6 +44,7 @@ export interface GraphHandle {
   clear: () => void
   getNodeCount: () => number
   getNode: (id: string) => NodeType | null
+  getEdge: (id: string) => EdgeType | null
   getNodes: () => NodeType[]
   focusNode: (id: string) => void
   getDOMPosition: (id: string) => Position

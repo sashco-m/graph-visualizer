@@ -5,13 +5,13 @@ export interface AgNode<T = Record<string, any>> {
 }
 
 export interface Actor {
-    id: string,
-    name: string,
-    birthYear: string
+  id: string;
+  name: string;
+  birthYear: string;
 }
 
 export interface Movie {
-    id: string,
-    year: number,
-    title: string
+  id: string;
+  year: number;
+  title: string;
 }

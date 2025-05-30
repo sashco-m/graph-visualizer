@@ -10,6 +10,8 @@ const Graph = ({
   onNodeClick,
   onNodeBlur,
   onNodeHover,
+  onEdgeHover,
+  onEdgeBlur,
   ref
 }: GraphProps) => {
   const { settings } = useContext(SettingsContext)
@@ -91,13 +93,15 @@ const Graph = ({
         }, {} as Record<string, number>)
 
         const nodesToUpdate = Object.entries(degreeMap).reduce((acc, cur) => {
-          const curNode = nodeDS.current.get(cur[0]) 
-          const size = (curNode?.size ?? 16) + Math.log(cur[1]) * 10
+          const nodeId = cur[0]
+          const degree = cur[1]
+          const curNode = nodeDS.current.get(nodeId) 
+          const size = (curNode?.size ?? 16) + Math.log(degree) * 10
           acc.push({ 
             id: cur[0],
             size,
             font: {
-              size: (curNode?.font?.size ?? 14) + Math.log(cur[1]) * 10,
+              size: (curNode?.font?.size ?? 14) + Math.log(degree) * 10,
             },
             mass: Math.log(size)
           })
@@ -112,6 +116,7 @@ const Graph = ({
       },
       getNodeCount: () => nodeDS.current.length,
       getNode: (id: string) => nodeDS.current.get(id),
+      getEdge: (id: string) => edgeDS.current.get(id),
       getNodes: () => nodeDS.current.get(),
       focusNode: (id: string) => {
         networkRef.current?.focus(id, { animation: true, scale: 1.25 })
@@ -227,6 +232,45 @@ const Graph = ({
 
     return () => 
       networkRef.current?.off('blurNode', handleBlur)
+
+  }, [onNodeBlur])
+
+  // handle edge hover
+  useEffect(() => {
+    if(!networkRef.current) return
+
+    const handleHover = (params: { edge: string, pointer: { DOM: { x:number, y: number }} }) => {
+      const {edge, pointer} = params
+      if(!edge) return
+      if(!pointer?.DOM?.x || !pointer?.DOM?.y) return
+
+      onEdgeHover(edge, {
+        x: pointer.DOM.x,
+        y: pointer.DOM.y
+      })
+    }
+
+    networkRef.current.on('hoverEdge', handleHover);
+
+    return () => 
+      networkRef.current?.off('hoverEdge', handleHover)
+
+  }, [onEdgeHover])
+
+  useEffect(() => {
+    if(!networkRef.current) return
+
+    const handleBlur= (params: { edge: string }) => {
+      const edgeId = params.edge;
+      if(!edgeId) return
+
+      onEdgeBlur(edgeId)
+    }
+
+    networkRef.current.on('blurEdge', handleBlur);
+
+    return () => 
+      networkRef.current?.off('blurEdge', handleBlur)
 
   }, [onNodeBlur])
 

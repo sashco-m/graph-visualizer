@@ -20,7 +20,7 @@ export class ExploreController {
 
   // returns count of connections
   @Get('node-connections/:id/')
-  async nodeConnections(@Param('id') id:string){
-    return this.exploreService.nodeConnections(id)
+  async nodeConnections(@Param('id') id: string) {
+    return this.exploreService.nodeConnections(id);
   }
 }

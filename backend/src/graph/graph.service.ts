@@ -45,7 +45,7 @@ export class GraphService implements OnModuleInit {
   async runCypher<T>(
     query: string,
     params: Record<string, any> = {},
-    columns: string[] = ["result"]
+    columns: string[] = ['result'],
   ): Promise<T[]> {
     const text = `
       SELECT * FROM cypher(
@@ -53,7 +53,7 @@ export class GraphService implements OnModuleInit {
         $$ ${query} $$,
         $1
       ) AS (
-        ${columns.map(c => `${c} agtype`).join(',')}
+        ${columns.map((c) => `${c} agtype`).join(',')}
       )
     `;
     // console.log(text)
@@ -61,20 +61,21 @@ export class GraphService implements OnModuleInit {
     const res = await this.client.query(text, values);
     // todo improve typing
     return res.rows.map((row: Record<string, any>) => {
-      const parsedRow: Record<string, any> = {}
-      for(const col of columns){
-        const ag = row[col]
+      const parsedRow: Record<string, any> = {};
+      for (const col of columns) {
+        const ag = row[col];
         // could be an object (node/edge) or a scalar
-        if(typeof ag !== 'object'){
+        if (typeof ag !== 'object') {
           // may need to JSON parse
-          parsedRow[col] = ag
-          continue
+          parsedRow[col] = ag;
+          continue;
         }
 
-        const props = ag?.get('properties')
-        parsedRow[col] = props instanceof Map ? this.mapToObject(props) : (props ?? ag)
+        const props = ag?.get('properties');
+        parsedRow[col] =
+          props instanceof Map ? this.mapToObject(props) : (props ?? ag);
       }
-      return parsedRow
+      return parsedRow;
     });
   }
 

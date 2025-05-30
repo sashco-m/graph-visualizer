@@ -8,12 +8,15 @@ import ActorAutocomplete from './components/ActorAutocomplete/ActorAutocomplete'
 import NodeModal from './components/NodeModal'
 import Sidebar from './components/Sidebar'
 import { SettingsContext } from './context/SettingsContext'
+import EdgeModal from './components/EdgeModal'
 
 function App() {
   const [rootActor, setRootActor] = useState("")
   const [expanded, setExpanded] = useState<string[]>([])
   const [nodeCount, setNodeCount] = useState(0)
   const [hoveredNode, setHoveredNode] = useState("")
+  const [hoveredEdge, setHoveredEdge] = useState("")
+  const [pointerPos, setPointerPos] = useState({ x:0, y:0 })
   const [menuOpen, setMenuOpen] = useState(false)
   const { settings }= useContext(SettingsContext)
 
@@ -60,13 +63,22 @@ function App() {
           ref={graphRef} 
           onNodeClick={expandNode} 
           onNodeBlur={() => setHoveredNode("")}
-          onNodeHover={(id: string) => setHoveredNode(id)}
+          onNodeHover={setHoveredNode}
+          onEdgeHover={(id, pointer) => {
+            setHoveredEdge(id)
+            setPointerPos(pointer)
+          }}
+          onEdgeBlur={() => setHoveredEdge("")}
           />
         <NodeModal
           node={graphRef.current?.getNode(hoveredNode) ?? null}
           getDOMPosition={graphRef.current?.getDOMPosition ?? (()=>({ x: 0, y: 0}))}
           isExpanded={expanded.includes(hoveredNode)}
           numConnections={graphRef.current?.getNumConnections(hoveredNode) ?? 0}
+        />
+        <EdgeModal 
+          edge={graphRef.current?.getEdge(hoveredEdge) ?? null}
+          pointerPosition={pointerPos}
         />
       </div>
 

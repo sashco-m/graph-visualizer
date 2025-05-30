@@ -33,6 +33,11 @@ export const physics_barnesHut = {
     minVelocity: 0.2
 }
 
+export const DIMMED_NODE_COLOR = "#cccccc";
+export const DIMMED_FONT_COLOR = "#999999";
+export const NODE_COLOR = "#ffffff";
+export const FONT_COLOR = "#eeeeee";
+
 export const OPTIONS = {
     layout: {
         improvedLayout: false,
@@ -50,13 +55,13 @@ export const OPTIONS = {
         shape: 'dot',
         size: 16,
         font: {
-            color: "#eeeeee",
+            color: FONT_COLOR,
             size: 14,
             face: "sans-serif",
         },
         color: {
             border: "#999",
-            background: "#ffffff",
+            background: NODE_COLOR,
             highlight: {
                 border: "#ffffff",
                 background: "#66ccff",
@@ -70,8 +75,8 @@ export const OPTIONS = {
     edges: {
         color: {
             color: "#555",
-            highlight: "#999",
-            hover: "#aaa",
+            highlight: "#ffcc00",
+            hover: "#ffcc00",
         },
         width: 1.2,
         selectionWidth: 2,
@@ -79,5 +84,10 @@ export const OPTIONS = {
             type: "continuous",
             forceDirection: "none"
         },
+        font: {
+            size: 20,
+            color: FONT_COLOR,
+            strokeColor: "#000"
+        }
     },
 };

@@ -6,6 +6,12 @@ import * as csv from 'fast-csv';
 import { GraphService } from 'src/graph/graph.service';
 import { PersonRow, PrincipalRow, RatingRow, TitleRow } from './types';
 
+/*
+  Last main TODO
+  - use a csv library that allows skipping malformed rows
+  - have the import work with a single command - auto-download and delete datasets
+*/
+
 // tsv helper
 async function streamTsv<T>(
   filePath: string,
