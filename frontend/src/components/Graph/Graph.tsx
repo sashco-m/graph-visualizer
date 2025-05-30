@@ -1,11 +1,12 @@
 import { useContext, useEffect, useImperativeHandle, useRef } from "react"
 import { Network } from "vis-network"
 import { DataSet } from "vis-data"
-import { OPTIONS, physics_barnesHut, physics_forceAtlas2Based } from "./Graph.options"
+import { EDGE_WIDTH, OPTIONS, physics_barnesHut, physics_forceAtlas2Based } from "./Graph.options"
 import type { EdgeType, GraphProps, NodeType } from "./Graph.dto"
 import { SettingsContext, type Settings } from "../../context/SettingsContext"
 
-// TODO at higher zoom levels with clustering enabled, try and show an overall movie over all the edges
+// TODO
+// - figure out why expanding a related actor re-adds the title to the label
 const Graph = ({
   onNodeClick,
   onNodeBlur,
@@ -21,6 +22,8 @@ const Graph = ({
   const nodeDS = useRef<DataSet<NodeType, "id">>(new DataSet([]))
   const edgeDS = useRef<DataSet<EdgeType, "id">>(new DataSet([]))
   const movieToActors = useRef(new Map<string, Set<string>>())
+  // actor pair to edge ID
+  const actorToActor = useRef(new Map<string, string>())
   
     // give ref to the network 
     useImperativeHandle(ref, () => ({
@@ -35,9 +38,7 @@ const Graph = ({
 
         // Add invisible edges to increase attraction between nodes
         //  in the same movies
-        // make this a toggle-able option since it hurts performance
-        // TODO is this method better or vis js native clustering?
-        const psudoEdges = nodesToAdd.reduce((acc, node) => {
+        const pseudoEdges = nodesToAdd.reduce((acc, node) => {
           for(const movieId of node.movies){
             const relatedIds = movieToActors.current.get(movieId) ?? new Set()
 
@@ -49,7 +50,7 @@ const Graph = ({
               );
               if (hasRealEdge) continue;
 
-              const pseudoEdgeId = `pseudo-${[node.id, otherId].sort().join('-')}-${movieId}`;
+              const pseudoEdgeId = `pseudo-${[node.id, otherId].sort().join('-')}`;
               if (!edgeDS.current.get(pseudoEdgeId)) {
                 acc.push({
                   id: pseudoEdgeId,
@@ -71,10 +72,64 @@ const Graph = ({
           return acc
         }, [] as EdgeType[])
         
-        // TODO in edgesToAdd, see if there are multiple edges between the same 2 nodes
-        //  make these edges dynamic or else they will overlap 
-        edgesToAdd.push(...psudoEdges)
-        edgeDS.current.update(edgesToAdd);
+        // concatenate overlapping edges
+        const dedupedEdges: EdgeType[] = []
+        for(const e of edgesToAdd){
+          const key = [e.from, e.to].sort().join('-')
+          if(!actorToActor.current.has(key)){
+            // new edge, add as normal
+            dedupedEdges.push(e)
+            actorToActor.current.set(key, e.id)
+            continue
+          }
+          // old edge, update the existing one
+          const existingEdgeId = actorToActor.current.get(key)! 
+          const isInArr = !!dedupedEdges.find(e => e.id === existingEdgeId)
+          const existingEdge = isInArr ? dedupedEdges.find(e => e.id === existingEdgeId) : edgeDS.current.get(existingEdgeId) 
+          if(!existingEdge){
+            console.error("Can't find edge from map!")
+            dedupedEdges.push(e)
+            continue
+          }
+
+          // don't add the same movie twice
+          if(e.movieId === existingEdge.movieId) continue
+          if(existingEdge.inCommon?.map(ic => ic.movieId).includes(e.movieId!)) continue
+
+          // remove the existing edge if it is in deduped edges
+          if(isInArr){
+            const idxToRemove = dedupedEdges.findIndex(e => e.id === existingEdgeId)
+            dedupedEdges.splice(idxToRemove, 1) 
+          }
+
+          // update label & increase stroke width
+          // TODO merge colours?
+          const newInCommon = (existingEdge.inCommon ?? []).concat({
+            movieId: e.movieId!,
+            title: e.title!,
+            year: e.year!
+          })
+          const newLabel = newInCommon.length > 3 ? 
+            [
+              ...newInCommon.slice(0, 3).map((ic) => `${ic.title} - ${ic.year}`),
+              '...',
+              `${newInCommon.length - 3} more`
+            ]
+            : newInCommon.map((ic) => `${ic.title} - ${ic.year}`)
+
+          dedupedEdges.push({
+            ...existingEdge, 
+            label: newLabel.join('\n'),
+            width: EDGE_WIDTH + (existingEdge?.inCommon?.length ?? 0),
+            font: {
+              multi: true
+            },
+            inCommon: newInCommon
+          })
+        }
+        edgeDS.current.update([...pseudoEdges, ...dedupedEdges])
+        //edgesToAdd.push(...pseudoEdges)
+        //edgeDS.current.update(edgesToAdd);
 
         // add nodes around the root if it exists
         const rootPosition = rootId ? networkRef.current.getPosition(rootId) : { x:0, y:0 }
@@ -86,6 +141,7 @@ const Graph = ({
         })))
 
         // update sizes of all nodes 
+        // TODO potentially change to deduped edges
         const degreeMap = edgesToAdd.reduce((acc, cur) => {
           acc[cur.from] = (acc[cur.from] || 0) + 1
           acc[cur.to] = (acc[cur.to] || 0) + 1

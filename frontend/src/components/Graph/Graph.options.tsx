@@ -37,6 +37,7 @@ export const DIMMED_NODE_COLOR = "#cccccc";
 export const DIMMED_FONT_COLOR = "#999999";
 export const NODE_COLOR = "#ffffff";
 export const FONT_COLOR = "#eeeeee";
+export const EDGE_WIDTH = 1.2
 
 export const OPTIONS = {
     layout: {
@@ -78,7 +79,7 @@ export const OPTIONS = {
             highlight: "#ffcc00",
             hover: "#ffcc00",
         },
-        width: 1.2,
+        width: EDGE_WIDTH,
         selectionWidth: 2,
         smooth: {
             type: "continuous",

@@ -33,12 +33,18 @@ interface EdgeModalProps {
   
     return (
       <div
-        className="absolute bg-[#333] text-white text-sm rounded-lg shadow-md px-4 py-3 z-50"
+        className="absolute bg-[#333] text-white text-sm rounded-lg shadow-md px-4 py-3 z-50 text-left"
         style={{ left: pos.x + 10, top: pos.y + 10 }}
       >
-        <div className="font-semibold">{edge.label}</div>
-        <div className="text-gray-400 text-xs">ID: {edge.movieId}</div>
-        <div>Released {edge.year}</div>
+        <div className="font-semibold">in common:</div>
+        <ul className="max-h-64 overflow-y-auto pr-2 space-y-2">
+          {edge.inCommon?.map(ic => 
+            <li key={ic.movieId}>
+              <div>{ic.title} - {ic.year}</div>
+              <div className="text-gray-400 text-xs">ID: {ic.movieId}</div>
+            </li>
+            )}
+        </ul>
       </div>
     )
   }

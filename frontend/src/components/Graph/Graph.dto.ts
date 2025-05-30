@@ -31,12 +31,19 @@ export interface EdgeType {
   id: string
   from: string,
   to:string,
-  year: number,
+  year?: number,
   label?: string
   movieId?: string
+  title?: string
   hidden?: boolean
   length?: number
   springConstant?: number
+  width?: number
+  inCommon?: {
+    movieId: string,
+    title: string,
+    year: number
+  }[]
 }
 
 export interface GraphHandle {

@@ -102,9 +102,16 @@ export class ExploreService {
         color: stringToColour(r.m.id),
         from: r.a1.id,
         to: r.a2.id,
-        label: r.m.title,
+        label: `${r.m.title} - ${r.m.year}`,
+        title: r.m.title,
         movieId: r.m.id,
         year: r.m.year,
+        // maybe we don't return this and let the FE handle it?
+        inCommon: [{
+          movieId: r.m.id,
+          title: r.m.title,
+          year: r.m.year
+        }]
       })),
     };
   }

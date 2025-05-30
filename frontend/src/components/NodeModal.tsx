@@ -53,9 +53,8 @@ interface NodeModalProps {
         className="absolute bg-[#333] text-white text-sm rounded-lg shadow-md px-4 py-3 z-50"
         style={{ left: pos.x + 10, top: pos.y + 10 }}
       >
-        <div className="font-semibold">{node.label}</div>
+        <div className="font-semibold">{node.label} - {node.birthYear}</div>
         <div className="text-gray-400 text-xs">ID: {node.id}</div>
-        <div>Born {node.birthYear}</div>
         <div>Connections: {numConnections}</div>
   
         {isExpanded && (

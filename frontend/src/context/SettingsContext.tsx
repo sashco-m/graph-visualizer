@@ -11,7 +11,7 @@ export const options: Record<Settings, any[]> = {
     // tooltips
 export const tips: Record<Settings, string> = {
     "hideBottomBar": "Hides the node count/search bar",
-    "physicsEngine": "barnesHut is more stable while forceAtlas2Based is flows nicer.",
+    "physicsEngine": "barnesHut is more stable while forceAtlas2Based flows nicer.",
 }
 
 const defaults:Record<Settings, any> = {
