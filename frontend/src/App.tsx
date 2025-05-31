@@ -83,7 +83,7 @@ function App() {
       </div>
 
       <div className='absolute z-100'>
-        <img className="w-12 h-12" src="public/burger_white.svg" onClick={()=>setMenuOpen(v => !v)}/>
+        <img className="w-12 h-12" src="/burger_white.svg" onClick={()=>setMenuOpen(v => !v)}/>
       </div>
 
       <div 

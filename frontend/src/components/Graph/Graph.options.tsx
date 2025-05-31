@@ -82,6 +82,8 @@ export const OPTIONS = {
         width: EDGE_WIDTH,
         selectionWidth: 2,
         smooth: {
+            enabled: true,
+            roundness: 0.5,
             type: "continuous",
             forceDirection: "none"
         },

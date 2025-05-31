@@ -1,0 +1,14 @@
+services:
+  backend:
+    build:
+      dockerfile: dockerfile.prod
+    environment:
+      NODE_ENV: production
+    restart: always
+    
+  frontend:
+    build:
+      dockerfile: dockerfile.prod
+    restart: always
+    ports: !override
+      - "3000:80"

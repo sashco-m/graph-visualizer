@@ -44,6 +44,9 @@ export interface EdgeType {
     title: string,
     year: number
   }[]
+  font?: {
+    multi?: boolean
+  }
 }
 
 export interface GraphHandle {

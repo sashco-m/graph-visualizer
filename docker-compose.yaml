@@ -10,12 +10,20 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
-    build: ./backend
+    build: 
+      context: ./backend
+      dockerfile: dockerfile.dev
     container_name: imdb-graph-backend
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       DB_HOST: ${DB_HOST} 
       DB_PORT: ${DB_PORT}
@@ -29,7 +37,9 @@ services:
       - ./data:/app/data
 
   frontend:
-    build: ./frontend
+    build: 
+      context: ./frontend
+      dockerfile: dockerfile.dev
     container_name: imdb-graph-frontend
     # volumes allow for code changes to reflect in container
     volumes:

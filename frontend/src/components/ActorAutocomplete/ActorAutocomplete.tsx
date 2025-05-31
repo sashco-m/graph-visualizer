@@ -16,7 +16,7 @@ const ActorAutocomplete = ({
         <Autocomplete<Actor>
             onSelect={onSelect}
             onQueryChange={async (query: string, setResults: Dispatch<SetStateAction<Actor[]>>) => {
-                const results = await fetch(
+                const results: { result: any }[] = await fetch(
                     `/api/explore/search?query=${encodeURIComponent(query)}`
                 ).then(res => res.json())
 
