@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as csv from 'fast-csv';
 import { GraphService } from 'src/graph/graph.service';
 import { PersonRow, PrincipalRow, RatingRow, TitleRow } from './types';
+import { downloadAndDecompressTsv, removeFileIfExists } from './download';
 
 /*
   Last main TODO
@@ -25,7 +26,7 @@ async function streamTsv<T>(
 
     const parser = fs
       .createReadStream(path.resolve(filePath))
-      .pipe(csv.parse({ headers: true, delimiter: '\t' }));
+      .pipe(csv.parse({ headers: true, delimiter: '\t', quote: '\0' }));
 
     parser
       .on('data', async (row) => {
@@ -62,10 +63,31 @@ async function streamTsv<T>(
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
 
+  // 1) Prepare a list of each dataset URL
+  const imdbUrls = {
+    ratings:   'https://datasets.imdbws.com/title.ratings.tsv.gz',
+    basics:    'https://datasets.imdbws.com/title.basics.tsv.gz',
+    principals:'https://datasets.imdbws.com/title.principals.tsv.gz',
+    names:     'https://datasets.imdbws.com/name.basics.tsv.gz',
+  };
+
+  // 2) Download & decompress each one, getting back local .tsv paths
+  const localRatingsPath   = await downloadAndDecompressTsv(imdbUrls.ratings);
+  const localBasicsPath    = await downloadAndDecompressTsv(imdbUrls.basics);
+  const localPrincipalsPath= await downloadAndDecompressTsv(imdbUrls.principals);
+  const localNamesPath     = await downloadAndDecompressTsv(imdbUrls.names);
+
   // make a cli arg
   const BATCH_SIZE = 500_000;
 
   const graph = app.get(GraphService);
+
+  await graph.runQuery(
+    `DROP INDEX IF EXISTS person_properties_gin`,
+  );
+  await graph.runQuery(
+    `DROP INDEX IF EXISTS movie_properties_gin`,
+  );
 
   // optimization: only insert popular movies
   const MOVIE_LIMIT = 10_000;
@@ -78,7 +100,7 @@ async function bootstrap() {
   const existingMovieIds = new Set<string>();
 
   await streamTsv<RatingRow>(
-    'data/title.ratings.tsv',
+    localRatingsPath,
     async (batch) => {
       const votes = batch
         .filter((r) => !isNaN(parseInt(r.numVotes)))
@@ -100,7 +122,7 @@ async function bootstrap() {
 
   console.log('🔹 Importing movies...');
   await streamTsv<TitleRow>(
-    'data/title.basics.tsv',
+    localBasicsPath,
     async (batch) => {
       const movies = batch
         .filter((r) => topMovieIds.has(r.tconst))
@@ -136,7 +158,7 @@ async function bootstrap() {
 
   console.log('🔹 Finding valid actors...');
   await streamTsv<PrincipalRow>(
-    'data/title.principals.tsv',
+    localPrincipalsPath,
     async (batch) => {
       const relationships = batch
         .filter((row) => row.category === 'actor' || row.category === 'actress')
@@ -153,7 +175,7 @@ async function bootstrap() {
 
   console.log('🔹 Importing people...');
   await streamTsv<PersonRow>(
-    'data/name.basics.tsv',
+    localNamesPath,
     async (batch) => {
       const people = batch
         .filter((p) => p.birthYear !== '\\N')
@@ -186,16 +208,16 @@ async function bootstrap() {
   // index creation (speeds up following matches a lot)
   // https://github.com/apache/age/discussions/130
   // https://github.com/apache/age/discussions/45
-  await graph.runCypher(
+  await graph.runQuery(
     `CREATE INDEX IF NOT EXISTS person_properties_gin ON imdb_graph."Person" USING GIN (properties);`,
   );
-  await graph.runCypher(
+  await graph.runQuery(
     `CREATE INDEX IF NOT EXISTS movie_properties_gin ON imdb_graph."Movie" USING GIN (properties);`,
   );
 
   console.log('🔹 Linking actors to movies...');
   await streamTsv<PrincipalRow>(
-    'data/title.principals.tsv',
+    localPrincipalsPath,
     async (batch) => {
       const relationships = batch
         .filter((row) => row.category === 'actor' || row.category === 'actress')
@@ -223,6 +245,12 @@ async function bootstrap() {
     },
     BATCH_SIZE,
   );
+
+  // 4) Once everything’s done, delete the downloaded .tsv files:
+  await removeFileIfExists(localRatingsPath);
+  await removeFileIfExists(localBasicsPath);
+  await removeFileIfExists(localPrincipalsPath);
+  await removeFileIfExists(localNamesPath);
 
   console.log('✅ Done');
 

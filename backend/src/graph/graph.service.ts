@@ -1,10 +1,9 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { types, Client } from 'pg';
 import { setAGETypes } from 'src/lib/parser';
-import { AgNode } from './graph.dto';
 
 @Injectable()
-export class GraphService implements OnModuleInit {
+export class GraphService implements OnModuleInit, OnModuleDestroy {
   private client: Client;
   private readonly graphName = 'imdb_graph';
 
@@ -79,6 +78,10 @@ export class GraphService implements OnModuleInit {
     });
   }
 
+  async runQuery(text: string, values?: string[]){
+    return await this.client.query(text, values)
+  }
+
   private mapToObject(map: Map<any, any>): any {
     const obj: any = {};
     for (const [key, value] of map.entries()) {
@@ -87,7 +90,7 @@ export class GraphService implements OnModuleInit {
     return obj;
   }
 
-  async close() {
+  async onModuleDestroy() {
     await this.client.end();
   }
 }
