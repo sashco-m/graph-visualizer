@@ -11,4 +11,4 @@ services:
       dockerfile: dockerfile.prod
     restart: always
     ports: !override
-      - "3000:80"
+      - "80:80"
