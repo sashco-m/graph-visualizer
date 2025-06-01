@@ -78,7 +78,7 @@ async function bootstrap() {
   const localNamesPath     = await downloadAndDecompressTsv(imdbUrls.names);
 
   // make a cli arg
-  const BATCH_SIZE = 500_000;
+  const BATCH_SIZE = 50_000;
 
   const graph = app.get(GraphService);
 
