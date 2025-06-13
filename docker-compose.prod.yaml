@@ -13,7 +13,6 @@ services:
       dockerfile: dockerfile.prod
     restart: always
     ports: !override
-      - "3000:80"
 
   nginx:
     image: nginx:stable-alpine
@@ -29,6 +28,17 @@ services:
     depends_on:
       - frontend
       - backend
+
+  # below is used once only for certs
+  nginx-bootstrap:
+    image: nginx:stable-alpine
+    container_name: nginx-bootstrap
+    volumes:
+      - ./nginx/certbot/www:/var/www/certbot
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/bootstrap.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
 
   certbot:
     image: certbot/certbot
