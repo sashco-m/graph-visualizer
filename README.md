@@ -21,7 +21,17 @@ docker compose -f docker-compose.yaml  --env-file .dev.env up
 ```
 
 ### prod
-start services with
+
+### first time
+1. serve public keys with nginx
 ```bash
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml --env-file .prod.env up -d
+docker compose -f docker-compose.prod.yaml up -d nginx
+```
+2. request cert
+```bash
+docker compose -f docker-compose.prod.yaml run --rm certbot
+```
+3. start services with
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml --env-file .prod.env up -d --force-recreate nginx
 ```
