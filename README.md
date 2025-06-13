@@ -25,13 +25,19 @@ docker compose -f docker-compose.yaml  --env-file .dev.env up
 ### first time
 1. serve public keys with nginx
 ```bash
-docker compose -f docker-compose.prod.yaml up -d nginx
+docker compose -f docker-compose.prod.yaml up -d nginx-bootstrap
 ```
 2. request cert
 ```bash
 docker compose -f docker-compose.prod.yaml run --rm certbot
 ```
+
+3. Stop bootstrap nginx
+```bash
+docker compose -f docker-compose.prod.yaml down
+```
+
 3. start services with
 ```bash
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml --env-file .prod.env up -d --force-recreate nginx
+docker compose -f docker-compose.yaml -f docker-compose.prod.yaml --env-file .prod.env up -d
 ```

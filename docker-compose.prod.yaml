@@ -12,7 +12,7 @@ services:
     build:
       dockerfile: dockerfile.prod
     restart: always
-    ports: !override
+    ports: !reset []
 
   nginx:
     image: nginx:stable-alpine
