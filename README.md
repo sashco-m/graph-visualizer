@@ -22,22 +22,11 @@ docker compose -f docker-compose.yaml  --env-file .dev.env up
 
 ### prod
 
-### first time
-1. serve public keys with nginx
-```bash
-docker compose -f docker-compose.prod.yaml up -d nginx-bootstrap
-```
-2. request cert
-```bash
-docker compose -f docker-compose.prod.yaml run --rm certbot
-```
+### first time (cert setup)
 
-3. Stop bootstrap nginx
-```bash
-docker compose -f docker-compose.prod.yaml down
-```
 
-3. start services with
+### every time
+start services with
 ```bash
 docker compose -f docker-compose.yaml -f docker-compose.prod.yaml --env-file .prod.env up -d
 ```

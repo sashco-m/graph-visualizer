@@ -12,53 +12,5 @@ services:
     build:
       dockerfile: dockerfile.prod
     restart: always
-    ports: !reset []
-
-  nginx:
-    image: nginx:stable-alpine
-    container_name: nginx-reverse-proxy
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./nginx/certbot:/var/www/certbot
-      - ./nginx/letsencrypt:/etc/letsencrypt
-    depends_on:
-      - frontend
-      - backend
-
-  # below is used once only for certs
-  nginx-bootstrap:
-    image: nginx:stable-alpine
-    container_name: nginx-bootstrap
-    volumes:
-      - ./nginx/certbot:/var/www/certbot
-      - ./nginx/certbot/conf:/etc/letsencrypt
-      - ./nginx/bootstrap.conf:/etc/nginx/conf.d/default.conf
-    ports:
-      - "80:80"
-
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - ./nginx/certbot:/var/www/certbot
-      - ./nginx/letsencrypt:/etc/letsencrypt
-    entrypoint: >
-      sh -c "certbot certonly --webroot --webroot-path=/var/www/certbot
-      --email sashco.mistelbacher@gmail.com --agree-tos --no-eff-email
-      -d imdb.mistelbacher.ca"
-
-  certbot-renew:
-    image: certbot/certbot
-    container_name: certbot-renew
-    volumes:
-      - ./nginx/letsencrypt:/etc/letsencrypt
-      - ./nginx/certbot:/var/www/certbot
-    entrypoint: >
-      sh -c "trap exit TERM; while :; do certbot renew --webroot --webroot-path=/var/www/certbot --quiet && nginx -s reload; sleep 12h; done"
-    depends_on:
-      - nginx
-
+    ports: !override
+      - "3000:80"
