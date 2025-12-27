@@ -21,12 +21,7 @@ docker compose -f docker-compose.yaml  --env-file .dev.env up
 ```
 
 ### prod
-
-### first time (cert setup)
-
-
-### every time
 start services with
 ```bash
-docker compose -f docker-compose.yaml -f docker-compose.prod.yaml --env-file .prod.env up -d
+docker compose -f docker-compose.prod.yaml --env-file .prod.env up -d
 ```

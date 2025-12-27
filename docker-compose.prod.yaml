@@ -1,16 +1,47 @@
 services:
+  db:
+    image: apache/age:latest
+    container_name: imdb-age-db
+    env_file:
+      - .prod.env
+    environment:
+      # Pull from .prod.env
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    networks:
+      - caddy_net
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
+      context: ./backend
       dockerfile: dockerfile.prod
-    environment:
-      NODE_ENV: production
-    restart: always
-    volumes: !override
-      - ./data:/app/data
-    
+    container_name: imdb-graph-backend
+    env_file:
+      - .prod.env
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - caddy_net
+
   frontend:
     build:
+      context: ./frontend
       dockerfile: dockerfile.prod
+    container_name: imdb-graph-frontend
     restart: always
-    ports: !override
-      - "3000:80"
+    networks:
+      - caddy_net
+
+networks:
+  caddy_net:
+    external: true
+
