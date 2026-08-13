@@ -1,5 +1,6 @@
 services:
   db:
+    restart: always
     image: apache/age:latest
     container_name: imdb-age-db
     env_file:
@@ -11,8 +12,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - ./data:/var/lib/postgresql/data
-    networks:
-      - caddy_net
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
       interval: 5s
@@ -24,12 +23,21 @@ services:
       context: ./backend
       dockerfile: dockerfile.prod
     container_name: imdb-graph-backend
+    environment:
+      NODE_ENV: production
+    restart: always
+    volumes:
+      - ./data:/app/data
     env_file:
       - .prod.env
     depends_on:
       db:
         condition: service_healthy
+    # default so it can reach `db` (now off caddy_net -- see db's comment
+    # history / homelab-infra CLAUDE.md collision note); caddy_net so
+    # homelab-infra's Caddy can reverse-proxy to it by container name.
     networks:
+      - default
       - caddy_net
 
   frontend:
@@ -42,6 +50,6 @@ services:
       - caddy_net
 
 networks:
+  default: {}
   caddy_net:
     external: true
-
